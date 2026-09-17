@@ -23,13 +23,17 @@ FILM.scene({
     const q = L.clamp(L.onTwos(t) / info.dur);
     const seed = L.hash('${id}');
     L.paper(ctx);
-    L.inkPath(ctx, L.ellipsePts(540, 860, 300, 400, 72), { closed: true, width: 5, seed: seed + 1, double: true });
-    L.inkLine(ctx, 140, 1300, 940, 1300, { width: 3, seed: seed + 2 });
-    L.inkCircle(ctx, 240 + 600 * q, 1230, 44, { width: 3, seed: seed + 3, fill: P.orange });
-    L.text(ctx, 'STUB ${nn}', 540, 330, { size: 60, weight: 600, align: 'center', color: P.annMagenta });
-    L.text(ctx, info.shot.title || '${id}', 540, 1420, { size: 44, align: 'center', color: P.ink });
-    L.text(ctx, '${id}', 540, 1480, { size: 30, align: 'center', color: P.inkSoft });
-    if (p > 0.01) L.inkLine(ctx, 140, 1530, 140 + 800 * p, 1530, { width: 4, color: P.annBlue, seed: seed + 4, taper: 0 });
+    const W = FILM.W, H = FILM.H, cx = W / 2;
+    // captions sit above the safe bottom the gate enforces: a vertical frame keeps clear of the
+    // Shorts UI, a square frame needs only a margin
+    const safeBottom = H >= W * 1.5 ? H - 380 : H - 80;
+    L.inkPath(ctx, L.ellipsePts(cx, H * 0.45, W * 0.28, H * 0.21, 72), { closed: true, width: 5, seed: seed + 1, double: true });
+    L.inkLine(ctx, W * 0.13, H * 0.68, W * 0.87, H * 0.68, { width: 3, seed: seed + 2 });
+    L.inkCircle(ctx, W * 0.22 + W * 0.56 * q, H * 0.64, 44, { width: 3, seed: seed + 3, fill: P.orange });
+    L.text(ctx, 'STUB ${nn}', cx, H * 0.17, { size: 60, weight: 600, align: 'center', color: P.annMagenta });
+    L.text(ctx, info.shot.title || '${id}', cx, safeBottom - 120, { size: 44, align: 'center', color: P.ink });
+    L.text(ctx, '${id}', cx, safeBottom - 70, { size: 30, align: 'center', color: P.inkSoft });
+    if (p > 0.01) L.inkLine(ctx, W * 0.13, safeBottom - 20, W * 0.13 + W * 0.74 * p, safeBottom - 20, { width: 4, color: P.annBlue, seed: seed + 4, taper: 0 });
   },
 });
 `;
@@ -42,11 +46,15 @@ FILM.scene({
     const L = info.lib, P = L.pal;
     const p = L.clamp(t / info.dur);
     L.blueprint(ctx);
-    L.guideCircle(ctx, 540, 860, 340, { alpha: 0.4 });
-    L.glowDot(ctx, 540, 860, 10 + 8 * p, { rays: 12, rot: p * Math.PI });
-    L.text(ctx, 'STUB ${nn}', 540, 330, { size: 60, weight: 600, align: 'center', color: P.magenta });
-    L.text(ctx, info.shot.title || '${id}', 540, 1420, { size: 44, align: 'center', color: P.lavender });
-    L.text(ctx, '${id}', 540, 1480, { size: 30, align: 'center', color: P.lavender, alpha: 0.6 });
+    const W = FILM.W, H = FILM.H, cx = W / 2;
+    // captions sit above the safe bottom the gate enforces: a vertical frame keeps clear of the
+    // Shorts UI, a square frame needs only a margin
+    const safeBottom = H >= W * 1.5 ? H - 380 : H - 80;
+    L.guideCircle(ctx, cx, H * 0.45, W * 0.31, { alpha: 0.4 });
+    L.glowDot(ctx, cx, H * 0.45, 10 + 8 * p, { rays: 12, rot: p * Math.PI });
+    L.text(ctx, 'STUB ${nn}', cx, H * 0.17, { size: 60, weight: 600, align: 'center', color: P.magenta });
+    L.text(ctx, info.shot.title || '${id}', cx, safeBottom - 120, { size: 44, align: 'center', color: P.lavender });
+    L.text(ctx, '${id}', cx, safeBottom - 70, { size: 30, align: 'center', color: P.lavender, alpha: 0.6 });
     ctx.fillStyle = P.lineWhite;
     ctx.fillRect(140, 1526, 800 * p, 6);
   },
