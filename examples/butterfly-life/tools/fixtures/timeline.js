@@ -2,6 +2,8 @@
 FILM.TIMELINE = {
   title: 'fixture',
   bpm: 120,
+  // these sheets are full-frame diagnostics, not a Shorts deliverable: labels run to the bottom edge
+  safeBottom: 1920,
   duration: 8,
   shots: [
     { id: 'lib-showcase', file: '01-lib-showcase.js', start: 0, end: 2.5, mode: 'illustrated', brief: 'Every lib helper on one plate: paper, stripes, ink, hatching, stipple, blueprint, lattice, glows, guides.' },

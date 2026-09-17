@@ -48,6 +48,7 @@ Almost none — `lib.text` appears once per film (the closing wordmark). Labels 
 - Draw-order dependence or unseeded randomness: the determinism pass renders every checked frame five ways — warm forward, warm reversed, fresh page shuffled with decoy frames, cold first-draw after reload, and sequential (f−1 then f) — and compares full pixel hashes.
 - Any throw on a checked frame, including errors thrown by the *outgoing* shot inside a transition.
 - Timeline ids a scene file fails to register, duplicate registrations, a `transitionIn.dur` longer than its shot.
+- Text whose ink reaches below the safe area, measured on the rendered frame where the string lands, so a computed position or a raw `ctx.fillText` counts the same as a literal one.
 - Frames over 150 ms (warning; `--budget ms` makes it a failure).
 
 Two more traps the gate does not need to catch because core handles them, and you should still avoid: writing to `FILM.lib`, `pal` or `ease` (they are frozen — the write throws), and leaving `ctx.save()` unbalanced (core unwinds it, at a cost).

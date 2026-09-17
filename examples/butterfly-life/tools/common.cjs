@@ -224,12 +224,38 @@ window.__h = {
   render(T, o) {
     FILM.errors = [];
     FILM.post = !(o && o.post === false);
+    const text = o && o.text ? this._catchText() : null;
     const t0 = performance.now();
     const shot = FILM.renderFrame(T);
     FILM.post = true;
     FILM.ctx.getImageData(0, 0, 1, 1); // force the deferred raster to run so the timing is real
     const ms = performance.now() - t0;
-    return { ms, shot: shot ? shot.id : null, errors: FILM.errors.map(e => ({ message: e.message, stack: e.stack, shot: e.shot, missing: !!e.missing })) };
+    const drawn = text ? text.stop() : [];
+    return { ms, shot: shot ? shot.id : null, text: drawn, errors: FILM.errors.map(e => ({ message: e.message, stack: e.stack, shot: e.shot, missing: !!e.missing })) };
+  },
+  // Every string the frame paints, with the y it really lands on: the canvas is wrapped rather than
+  // lib.text, so computed positions, camera transforms and raw ctx.fillText all land as one number.
+  _catchText() {
+    const ctx = FILM.ctx;
+    const hits = [];
+    const S = FILM.S || 1;
+    const wrap = (name) => {
+      const orig = ctx[name].bind(ctx);
+      ctx[name] = (str, x, y, ...rest) => {
+        const m = ctx.getTransform();
+        // the ink's bottom, not the baseline: descenders hang below an alphabetic baseline, and a
+        // 'top' baseline puts the whole glyph body below y
+        const size = parseFloat((/(\d*\.?\d+)px/.exec(ctx.font) || [0, 16])[1]) || 16;
+        const b = ctx.textBaseline;
+        const drop = b === 'top' || b === 'hanging' ? size : b === 'middle' ? size * 0.6 : b === 'bottom' || b === 'ideographic' ? 0 : size * 0.25;
+        const yb = y + drop;
+        hits.push({ str: String(str).slice(0, 40), size, y: (m.b * x + m.d * y + m.f) / S, bottom: (m.b * x + m.d * yb + m.f) / S });
+        return orig(str, x, y, ...rest);
+      };
+      return () => { ctx[name] = orig; };
+    };
+    const undo = [wrap('fillText'), wrap('strokeText')];
+    return { stop() { undo.forEach((u) => u()); return hits; } };
   },
   png() {
     return FILM.canvas.toDataURL('image/png').slice(22);

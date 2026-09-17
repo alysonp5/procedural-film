@@ -15,7 +15,8 @@
 //                  warns on a literal colour outside lib.js (colours come from lib.pal)
 //   4 timeline     coverage, ids, transitions; warns on off-grid hits and cuts, a bpm whose 16ths
 //                  miss the frame grid, and a duration that is not whole bars
-//   5 draw         every checked frame draws without throwing and is not one flat colour
+//   5 draw         every checked frame draws without throwing, is not one flat colour, and paints no
+//                  text below the safe area (measured where it lands, so computed positions count)
 //   4 timeline     shots cover 0..duration with no gaps or overlaps; every shot's file registers its id
 //   5 draw         first, middle and last frame of every shot draw without throwing
 //   6 cost         frame times from a sweep across the film; slowest frames listed
@@ -129,6 +130,11 @@ async function main() {
 
   const src = C.sources({ fixtures, player: true, lenient: true });
   const TL = src.timeline;
+  // the safe area both the static scan and the rendered text check measure against (art bible 1.1):
+  // a vertical film keeps clear of the Shorts UI, a square film only needs a margin
+  const H = TL.height || 1920;
+  const W = TL.width || 1080;
+  const safeBottom = TL.raw && TL.raw.safeBottom != null ? Number(TL.raw.safeBottom) : H >= W * 1.5 ? H - 380 : H - 80;
   console.log(`check ${fixtures ? '(fixtures)' : '(src)'}: ${TL.shots.length} shots, ${TL.duration}s, scale ${scale}`);
   for (const w of src.warnings) console.log(`[warn] ${w}`);
 
@@ -150,14 +156,6 @@ async function main() {
     }
     // must-read text stays inside the safe area (art bible 1.1): flag .text() with a literal y past it.
     // A vertical film keeps clear of the Shorts UI; a square film only needs a margin.
-    const H = src.timeline.height || 1920;
-    const W = src.timeline.width || 1080;
-    const safeBottom =
-      src.timeline.raw && src.timeline.raw.safeBottom != null
-        ? Number(src.timeline.raw.safeBottom)
-        : H >= W * 1.5
-          ? H - 380
-          : H - 80;
     const unsafeText = /\b(?:lib|L|LIB)\.text\s*\(\s*[^,]+,\s*[^,]+,\s*[^,]+,\s*(\d{3,4})/;
     for (const f of files) {
       if (!fs.existsSync(f)) continue;
@@ -305,8 +303,13 @@ async function main() {
         if (f1 < f0) continue;
         const fm = Math.floor((f0 + f1) / 2);
         for (const [label, f] of [['first', f0], ['middle', fm], ['last', f1]]) {
-          const r = await pg.page.evaluate((T) => window.__h.render(T), f / FPS);
+          const r = await pg.page.evaluate((T) => window.__h.render(T, { text: true }), f / FPS);
           drawn++;
+          for (const t of r.text || []) {
+            if (t.bottom > safeBottom + 1) {
+              drawFails.push(`${shot.id} ${label} frame f${f} (T=${(f / FPS).toFixed(3)}): text "${t.str}" reaches y ${Math.round(t.bottom)} (baseline ${Math.round(t.y)}), below the safe area (the ink must end by ${safeBottom})`);
+            }
+          }
           const softened = label === 'first' && shot.transitionIn && shot.transitionIn.kind !== 'cut';
           if (!softened && (await flatness(pg, f / FPS)) <= 6) {
             drawFails.push(`${shot.id} ${label} frame f${f} (T=${(f / FPS).toFixed(3)}) is one flat colour: a blank frame reads as a bug`);
