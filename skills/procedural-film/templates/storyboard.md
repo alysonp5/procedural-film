@@ -96,7 +96,7 @@ T <start> to <end>, <mode>, <transition in>.
 ```js
 FILM.TIMELINE = {
   title: '<film title>',
-  bpm: 120, duration: 32, fps: 24, width: 1080, height: 1920,
+  bpm: 120, duration: 32, fps: 24, width: 1080, height: 1920,   // photo-doodle: height 1080 (square)
   shots: [
     {
       id: 'eclosion',

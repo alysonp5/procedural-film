@@ -38,7 +38,8 @@
     style.textContent = [
       'html,body{margin:0;height:100%;background:#000;overflow:hidden}',
       'body{display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-user-select:none;user-select:none}',
-      '#film{display:block;height:min(100vh,calc(100vw*16/9));width:auto;aspect-ratio:9/16;background:#000}',
+      `#film{display:block;height:min(100vh,calc(100vw*${FILM.H}/${FILM.W}));width:auto;` +
+        `aspect-ratio:${FILM.W}/${FILM.H};background:#000}`,
       '#hud{position:fixed;left:0;right:0;bottom:0;padding:10px 14px;font:12px/1.4 ui-monospace,Menlo,monospace;color:#bbb;',
       'display:flex;justify-content:space-between;pointer-events:none;transition:opacity .4s;text-shadow:0 1px 2px #000}',
       '#bar{position:fixed;left:0;bottom:0;height:2px;background:#e8e0cf;width:0;pointer-events:none}',
@@ -175,6 +176,13 @@
     window.requestAnimationFrame(tick);
   }
 
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
-  else start();
+  // Photos decode asynchronously and the hand-lettering face resolves asynchronously; drawing before
+  // either is ready shows a half-built frame (and hashes differently from the same frame drawn later).
+  const boot = () =>
+    Promise.all([
+      FILM.loadPhotos ? FILM.loadPhotos() : Promise.resolve(),
+      document.fonts ? document.fonts.ready : Promise.resolve(),
+    ]).then(start);
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
 })();

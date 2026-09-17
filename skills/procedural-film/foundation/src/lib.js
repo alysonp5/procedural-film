@@ -286,6 +286,28 @@
     sunset: '#E79D8F',
     dusk: '#5A4878',
     red: '#BF3F2C',
+    // 2.2b photo-doodle house colours — the mode's own, used by src/props.js and src/cast.js.
+    // A drawn film never reads them. A film's own cast colours go in the subject block below.
+    paperMint: '#DCE7DC',
+    paperPink: '#F2DCD8',
+    paperButter: '#F1E5C2',
+    paperSky: '#D7E3EE',
+    paperCream: '#EEE5D4',
+    paperLilac: '#DFD9EA',
+    paperPeach: '#F2DDCA',
+    paperSage: '#D9E0CE',
+    paperNight: '#1C2340',
+    doodleInk: '#26221D',
+    chalk: '#F1EDE2',
+    washYellow: '#F0C85F',
+    washPink: '#EEA6A4',
+    washBlue: '#9DC3DF',
+    washGreen: '#A7C79A',
+    washLilac: '#BFB2DC',
+    washRed: '#D2685A',
+    washCream: '#EFE1C2',
+    washBrown: '#C09A6B',
+    blush: '#EFA7A7',
     // 2.2 subject palette, warm — filled per film from docs/art-bible.md section 2.2.
     // Add the subject's named colours here exactly as the art bible publishes them:
     //     hero: '#D9772B',
@@ -735,11 +757,14 @@
    *   overlap     14       closed shapes: how far the pen runs past its start (px)
    *   fill        null     closed shapes: fill colour under the line (uses the wobbled outline)
    *   fillAlpha   1
+   *   draw        1        draw-on progress 0..1 along the stroke (0 draws nothing; a fill waits for 1)
    *   double      false    true or { offset, width, alpha, from, to, seed }: a second quick retrace
    *                        (defaults: 30 percent of the width, min 1.5 px at 5 px, 3 px clear of the line, alpha 0.4)
    */
   function inkPath(ctx, pts, o = {}) {
     if (!pts || pts.length < 2) return;
+    const drawP = o.draw == null ? 1 : clamp(o.draw);
+    if (drawP <= 0) return;
     const closed = !!o.closed;
     const seed = seedInt(o.seed === undefined ? 1 : o.seed);
     const width = o.width != null ? o.width : 3;
@@ -772,10 +797,19 @@
       closeBlend: closed ? Math.min(60, C.loopLen * 0.25) + overlap : 0,
       loopLen: C.loopLen,
     };
+    let iEnd = C.m - 1;
+    if (drawP < 1) {
+      // stop the pen partway along the centreline; a partial closed shape gets no fill and no
+      // close-blend, and its tip is blunt rather than tapered to nothing
+      const Lp = C.S[C.m - 1] * drawP;
+      while (iEnd > 1 && C.S[iEnd] > Lp) iEnd--;
+      q.closeBlend = 0;
+      q.taperOut = Math.min(q.taperOut, 6);
+    }
     ctx.save();
     const color = o.color || pal.ink;
     const alpha = o.alpha != null ? o.alpha : 1;
-    if (closed && o.fill) {
+    if (closed && o.fill && drawP >= 1) {
       // fill follows the wobbled outline (without the overlap run)
       const F = ribbonLine(C, q, 0, Math.max(1, C.m - 1));
       ctx.beginPath();
@@ -793,8 +827,8 @@
     }
     ctx.globalAlpha *= alpha;
     ctx.fillStyle = color;
-    ribbon(ctx, C.X, C.Y, C.NX, C.NY, C.S, 0, C.m - 1, q);
-    if (o.double) {
+    ribbon(ctx, C.X, C.Y, C.NX, C.NY, C.S, 0, iEnd, q);
+    if (o.double && drawP >= 1) {
       const d = o.double === true ? {} : o.double;
       const ds = seedInt(d.seed != null ? d.seed : seed + 977);
       const r = rng(ds);
@@ -841,6 +875,121 @@
   }
 
   lib.inkPath = inkPath;
+
+  // ===========================================================================
+  // Photo-doodle mode: watercolour wash, photo cut-outs, handwriting
+  // Inert in a zero-asset film — nothing below is called unless a scene calls it.
+  // ===========================================================================
+
+  /**
+   * wash(ctx, pts, opts) : a translucent watercolour fill that deliberately misses its outline.
+   *   color      pal.washYellow or pal.sunYellow   alpha 0.55   seed 1
+   *   offset     [4, 3]   px shift off the ink outline (the mis-registration is the look)
+   *   spread     3        px of edge wobble   p 1   fade-in 0..1 (the wash arrives after its outline)
+   *   edge       0.35     darker pigment rim strength (0 = none)
+   */
+  lib.wash = (ctx, pts, o = {}) => {
+    const p = o.p == null ? 1 : clamp(o.p);
+    if (p <= 0 || !pts || pts.length < 3) return;
+    const seed = seedInt(o.seed == null ? 1 : o.seed);
+    const off = o.offset || [4, 3];
+    const spread = o.spread != null ? o.spread : 3;
+    const color = o.color || pal.washYellow || pal.sunYellow || pal.ink;
+    const sm = lib.smoothPts(pts, true, 5);
+    const n = sm.length;
+    let cx = 0, cy = 0;
+    for (const q of sm) { cx += q[0]; cy += q[1]; }
+    cx /= n; cy /= n;
+    const ring = (amp, sd) => {
+      ctx.beginPath();
+      for (let i = 0; i < n; i++) {
+        const [x, y] = sm[i];
+        const dx = x - cx, dy = y - cy, dl = Math.hypot(dx, dy) || 1;
+        const d = amp * noise1(i * 0.09, sd) + amp * 0.4 * noise1(i * 0.31, sd + 7);
+        const X = x + off[0] + (dx / dl) * d, Y = y + off[1] + (dy / dl) * d;
+        if (i === 0) ctx.moveTo(X, Y); else ctx.lineTo(X, Y);
+      }
+      ctx.closePath();
+    };
+    ctx.save();
+    ctx.globalAlpha *= (o.alpha != null ? o.alpha : 0.55) * p;
+    ctx.fillStyle = color;
+    ring(spread, seed);
+    ctx.fill();
+    const edge = o.edge != null ? o.edge : 0.35;
+    if (edge > 0) {
+      ctx.globalAlpha *= edge;
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2.2;
+      ctx.lineJoin = 'round';
+      ring(spread * 1.2, seed + 3);
+      ctx.stroke();
+    }
+    ctx.restore();
+  };
+
+  /**
+   * photo(ctx, id, cx, baseY, opts) : a background-removed photograph standing on the paper, with a
+   * soft contact shadow. Positioned by bottom-centre, so objects sit on a floor line.
+   *   h (height px, default 620) or w   rot 0 (radians, about the base centre)   scale 1 (pop-in)
+   *   shadow 0.38 (contact shadow alpha, 0 = none)   alpha 1
+   * Returns { x, y, w, h } of the unscaled, unrotated placement — anchor doodles off this rather
+   * than off guessed pixels. Returns null when the id is not in FILM.PHOTOS.
+   *
+   * One caution the gate will catch late: drawing the SAME photo at two different sizes in one page
+   * can resample differently once the browser has a texture history for it, which reads as
+   * non-determinism. If a film needs a photo at two sizes (an end-card grid of every shot), draw the
+   * small one through an offscreen canvas at 1:1 instead of scaling it live.
+   */
+  lib.photo = (ctx, id, cx, baseY, o = {}) => {
+    const F = typeof window !== 'undefined' ? window.FILM : globalThis.FILM;
+    const img = F && F.photo ? F.photo(id) : null;
+    const meta = F && F.PHOTOS ? F.PHOTOS[id] : null;
+    if (!img || !meta) return null;
+    const h = o.w != null ? (o.w * meta.h) / meta.w : o.h != null ? o.h : 620;
+    const w = (h * meta.w) / meta.h;
+    const box = { x: cx - w / 2, y: baseY - h, w, h };
+    const sc = o.scale != null ? o.scale : 1;
+    if (sc <= 0) return box;
+    ctx.save();
+    ctx.globalAlpha *= o.alpha != null ? o.alpha : 1;
+    const sh = o.shadow != null ? o.shadow : 0.38;
+    if (sh > 0) {
+      const g = ctx.createRadialGradient(cx, baseY, 0, cx, baseY, w * 0.62 * sc);
+      g.addColorStop(0, `rgba(48,36,24,${sh})`);
+      g.addColorStop(0.55, `rgba(48,36,24,${sh * 0.42})`);
+      g.addColorStop(1, 'rgba(48,36,24,0)');
+      ctx.save();
+      ctx.translate(cx, baseY);
+      ctx.scale(1, 0.14);
+      ctx.translate(-cx, -baseY);
+      ctx.fillStyle = g;
+      ctx.fillRect(cx - w, baseY - w, w * 2, w * 2);
+      ctx.restore();
+    }
+    ctx.translate(cx, baseY);
+    if (o.rot) ctx.rotate(o.rot);
+    ctx.scale(sc, sc);
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(img, -w / 2, -h, w, h);
+    ctx.restore();
+    return box;
+  };
+
+  /**
+   * hand(ctx, str, x, y, opts) : handwritten marker lettering in a system hand face (no font files),
+   * revealed letter by letter with p. Weights above 700 fall out of the hand faces onto a geometric
+   * fallback, so they are clamped.
+   */
+  lib.hand = (ctx, str, x, y, o = {}) => {
+    const q = Object.assign({ size: 46, color: pal.ink }, o);
+    q.family = HAND_STACK;
+    q.weight = Math.min(700, Number(q.weight) || 400);
+    return lib.text(ctx, str, x, y, q);
+  };
+  lib.inkLine = (ctx, x1, y1, x2, y2, o = {}) => inkPath(ctx, [[x1, y1], [x2, y2]], Object.assign({ smooth: false }, o));
+  lib.inkCircle = (ctx, cx, cy, r, o = {}) =>
+    inkPath(ctx, lib.ellipsePts(cx, cy, r, o.ry != null ? o.ry : r, Math.max(24, Math.ceil(r * 0.6)), o.rot || 0), Object.assign({ closed: true }, o));
   lib.inkLine = (ctx, x1, y1, x2, y2, o = {}) => inkPath(ctx, [[x1, y1], [x2, y2]], Object.assign({ smooth: false }, o));
   lib.inkCircle = (ctx, cx, cy, r, o = {}) =>
     inkPath(ctx, lib.ellipsePts(cx, cy, r, o.ry != null ? o.ry : r, Math.max(24, Math.ceil(r * 0.6)), o.rot || 0), Object.assign({ closed: true }, o));
@@ -1993,6 +2142,7 @@
    *   tracking 0 (px number, or a css length such as '0.12em'; letterSpacing is an alias),
    *   family (system stack), p 1 (typewriter reveal fraction), italic false
    */
+  const HAND_STACK = '"Chalkboard SE", "Marker Felt", "Comic Sans MS", cursive';
   lib.text = (ctx, str, x, y, o = {}) => {
     let s = String(str);
     if (o.p != null) s = s.slice(0, Math.round(s.length * clamp(o.p)));

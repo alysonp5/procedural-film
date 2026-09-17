@@ -9,7 +9,9 @@
 //                  hash identically warm forward, warm reversed, in a fresh page shuffled with decoys, cold (the first
 //                  draw in a fresh page) and sequential (drawn straight after the frame before it)
 //   3 sources      no Math.random, Date, performance.now or crypto randomness in src drawing/audio code;
-//                  no text drawn below the Shorts safe area (a literal y argument > 1540; an expression is not read);
+//                  no must-read text below the safe area (a literal y argument past it; an expression is not read):
+//                  a vertical film reserves the bottom 380 px for the Shorts UI, a square film an 80 px margin,
+//                  and a timeline can set safeBottom to say so itself;
 //                  warns on a literal colour outside lib.js (colours come from lib.pal)
 //   4 timeline     coverage, ids, transitions; warns on off-grid hits and cuts, a bpm whose 16ths
 //                  miss the frame grid, and a duration that is not whole bars
@@ -146,13 +148,22 @@ async function main() {
         }
       });
     }
-    // must-read text stays inside the Shorts safe area (art bible 1.1): flag .text() with a literal y > 1540
+    // must-read text stays inside the safe area (art bible 1.1): flag .text() with a literal y past it.
+    // A vertical film keeps clear of the Shorts UI; a square film only needs a margin.
+    const H = src.timeline.height || 1920;
+    const W = src.timeline.width || 1080;
+    const safeBottom =
+      src.timeline.raw && src.timeline.raw.safeBottom != null
+        ? Number(src.timeline.raw.safeBottom)
+        : H >= W * 1.5
+          ? H - 380
+          : H - 80;
     const unsafeText = /\b(?:lib|L|LIB)\.text\s*\(\s*[^,]+,\s*[^,]+,\s*[^,]+,\s*(\d{3,4})/;
     for (const f of files) {
       if (!fs.existsSync(f)) continue;
       stripComments(fs.readFileSync(f, 'utf8')).split('\n').forEach((line, i) => {
         const m = line.match(unsafeText);
-        if (m && Number(m[1]) > 1540) hits.push(`${C.rel(f)}:${i + 1}  text y ${m[1]} below the Shorts safe area (y must be <= 1540)  | ${line.trim().slice(0, 100)}`);
+        if (m && Number(m[1]) > safeBottom) hits.push(`${C.rel(f)}:${i + 1}  text y ${m[1]} below the safe area (y must be <= ${safeBottom})  | ${line.trim().slice(0, 100)}`);
       });
     }
     // colours come from lib.pal (art bible 2.2): a literal hex in a scene or timeline file drifts from the palette

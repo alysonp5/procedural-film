@@ -1,16 +1,31 @@
 ---
 name: procedural-film
-description: Procedural film — turn a subject into a short vertical animated film drawn and scored entirely in JavaScript. Use when the user asks for a procedural film, or a short hand-drawn animated film about a subject.
+description: Procedural film — turn a subject into a short animated film drawn and scored entirely in JavaScript, in one of two modes: drawn (every pixel computed, zero assets) or photo-doodle (real photographs with animated doodles drawn over them). Use when the user asks for a procedural film, a short hand-drawn animated film about a subject, or a film that doodles on photos.
 ---
 
 # Procedural film
 
-Turn a topic into a **film**: roughly 30 seconds, vertical 1080×1920 at 24 fps, hand-inked **paper plate** shots cut against navy **blueprint plate** shots, every event on a **beat grid** (bpm → beats → frames), every pixel and every audio sample computed in plain browser JavaScript. The deliverable is `dist/<slug>.html` (a self-contained player) plus `exports/<slug>.mp4` and its phone and preview transcodes.
+Turn a topic into a **film**: roughly 30 seconds at 24 fps, every event on a **beat grid** (bpm → beats → frames), every stroke and every audio sample computed in plain browser JavaScript. The deliverable is `dist/<slug>.html` (a self-contained player) plus `exports/<slug>.mp4` and its phone and preview transcodes.
+
+## Modes — pick one before step 1
+
+| | **drawn** (default) | **photo-doodle** |
+|---|---|---|
+| What is on screen | every pixel computed: hand-inked **paper plate** shots cut against navy **blueprint plate** shots | a background-removed **photograph** per shot, standing on tinted paper, with animated doodles drawn over and around it |
+| Frame | vertical 1080×1920 | square 1080×1080 |
+| Subject | explaining something real: a life cycle, a process, how a thing works | a story staged on ordinary objects, where each photo becomes a set (a clock becomes a bed, a pine cone becomes a mountain) |
+| Assets | none at all | photographs you source, licence and cut out yourself |
+| Extra steps | — | 1b source the photographs, 3b write the cast |
+| Extra files | — | `src/photos.js` (generated), `src/props.js`, `src/cast.js`, `assets/` |
+
+Both modes run the same ten steps, the same gate and the same beat grid; the deltas are marked **photo-doodle:** inside each step. Say which mode you are in when you confirm the brief.
+
+The square frame exists only because the timeline declares it — `width: 1080, height: 1080` in `FILM.TIMELINE`. Everything follows from there: the canvas, the player's aspect, the stub layout, and the gate's safe-area rule (a vertical film reserves the bottom 380 px for the Shorts UI, a square film an 80 px margin; `safeBottom` on the timeline overrides both). Forget it and you get a silent vertical film with no error and a green gate.
 
 This skill packages a proven pipeline. It ships three things:
 
-- `foundation/` — the engine and tools, copied into the new project: `src/core.js`, `src/lib.js`, `src/player.js`, `src/music.js` (engine plus a demo score), and `tools/` (build, check, snap, render, stubgen, audio analysis, fixtures). Everything is driven by `src/timeline.js`, so no tool code changes per film.
-- `templates/` — the four planning documents every film starts from.
+- `foundation/` — the engine and tools, copied into the new project: `src/core.js`, `src/lib.js`, `src/player.js`, `src/music.js` (engine plus a demo score), `src/props.js` (photo-doodle: the shared doodle props), and `tools/` (build, check, snap, render, stubgen, audio analysis, fixtures, and `photos.cjs` + `cutout.py` for photo-doodle). Everything is driven by `src/timeline.js`, so no tool code changes per film.
+- `templates/` — the four planning documents every film starts from, plus, for photo-doodle, `art-bible-photo-doodle.md` (that mode's house style, ready to fill) and `cast.js` (a worked character module to rewrite).
 - `reference/` — read when a step below points at one; the three example images first.
 
 Look first: `reference/example-contact-sheet.jpg` (the whole example film, 24 labelled frames), `reference/example-paper-frame.jpg` and `reference/example-blueprint-frame.jpg` (one full frame of each plate). That density and that finish are the bar.
@@ -35,31 +50,71 @@ Done when: the subject is one written sentence the user has seen.
 
 Create the project folder named for the film's slug and copy `foundation/` into it. Run `npm install` in `tools/` (Playwright; add `npx playwright install chromium` there if the browser is missing) and confirm ffmpeg is on the PATH, or set `FFMPEG` to its binary. Copy the templates into `docs/` and set the subject in `docs/CONTRACT.md`'s Goal.
 
+**photo-doodle:** also copy `templates/cast.js` to `src/cast.js` (you rewrite its bodies in step 3b), create `assets/raw/` and `assets/cut/`, and install the cut-out tool once:
+
+```bash
+uv venv --python 3.12 ~/.cache/procedural-film-rembg/.venv
+uv pip install --python ~/.cache/procedural-film-rembg/.venv/bin/python "rembg[cpu]" pillow
+~/.cache/procedural-film-rembg/.venv/bin/python -c "from rembg import new_session; new_session('isnet-general-use')"
+```
+
+The last line downloads the ~180 MB model once, so do it before you need it. On Windows the interpreter is `~/.cache/procedural-film-rembg/.venv/Scripts/python.exe`; `python -m venv` and `pip install` work the same way if `uv` is absent. `tools/cutout.py` reads that interpreter path from its own header — point it at wherever you built the environment.
+
 Done when: `node tools/smoke.cjs` passes, `node tools/check.cjs --fixtures` is green and `node tools/render.cjs --fixtures --scale 0.5` yields `exports/fixtures.mp4` with sound. The **fixtures** mini-film proves the toolchain before the film invests in planning.
+
+### 1b. Photographs — photo-doodle only
+
+Source one photograph per shot, plus a spare or two. Three rules, in order of how much they cost to get wrong:
+
+1. **Licence.** Only what you can actually use: public domain, CC0, CC BY, CC BY-SA. Record every file's title, author, licence and source URL in `docs/CREDITS.md` as you download, not afterwards. Say plainly in the handover which terms travel with the film — CC BY-SA asks that a work built on it be shared alike, which is a real constraint on a film someone means to publish.
+2. **Cut-out quality.** The background comes off locally: `cutout.py` (rembg, `isnet-general-use`) trims to the object's alpha bounds and writes `assets/cut/<id>.webp`. Objects on a plain contrasting background cut cleanly; an object the same colour as its background does not — a green cactus against green foliage came back as confetti. **Look at every cut-out before you build a shot around it** (compose them into one sheet with any image tool you like), and search again rather than accept a ragged one. When a photo holds several objects, crop to one before cutting.
+3. **Shape.** Prefer a clear silhouette with something to hang a doodle on: a handle, a spout, a rim, a hole. The shape is the set.
+
+Then `node tools/photos.cjs` embeds `assets/cut/*.webp` into `src/photos.js` as WebP data URIs, and scenes draw them with `lib.photo(ctx, id, cx, baseY, { h })`.
+
+Two engine facts worth knowing before you plan shots: photos are decoded before the first frame (drawing an undecoded image is a determinism failure), and drawing the same photo at two different sizes in one page can resample differently once the browser has a texture history for it — if an end card shows every photo as a thumbnail, draw those through an offscreen canvas at 1:1 instead of scaling live. The determinism check catches it, but at the end of the build rather than the start.
+
+Done when: every shot has a licensed, cleanly cut photograph, `docs/CREDITS.md` is complete, and `node tools/photos.cjs` reports every id.
 
 ### 2. Research
 
 List the phases of the subject's story, then run one web search per open question and capture two to four authoritative full-text sources into `.tmp/research/`. Research lands in exactly two places downstream: the art bible's subject reference and each shot's Subject section.
 
-Done when: every phase of the story traces to a captured source.
+**photo-doodle:** a story staged on objects has little to research and the gate below does not apply to it. Research instead what the film will be judged on for truth: how each real object behaves (steam leaves a spout and widens; a trumpet sounds at the bell, not the valves; pine-cone scales overlap upward), one line per object, straight into the art bible's section 9. Invented story, observed objects.
+
+Done when: every phase of the story traces to a captured source; in photo-doodle, every object has its observed behaviour written down.
 
 ### 3. Art bible
 
 Fill `docs/art-bible.md` from the template. Sections 1–9 are the house style — already decided. Only the two marked subject sections change: 2.2 (the subject palette, every colour a named hex, mirrored into the marked block in `src/lib.js`) and 10 (the subject reference built from the captured sources — one subsection per drawable element with sizes, ratios, counts, poses, sequences — ending in Mistakes to avoid, each mistake paired with the correct drawing).
 
+**photo-doodle:** use `templates/art-bible-photo-doodle.md` instead — a different house style, already written and proven. Change what your film genuinely needs (tints, cast sizes, the floor line), keep the rules, and fill its section 9. What that bible fixes, because these are the things parallel scene agents get wrong independently: one tinted paper plate per shot and a night plate where ink becomes chalk; line widths by role and **never dark ink on a dark part of a photograph**; washes offset off their outline, arriving after it, and **never on top of a photograph**; the photo at 40 to 65 percent of frame height standing on a floor line; **density** (8 to 15 distinct doodle elements per shot, nothing important under 40 px, three things moving at any moment); and draw-on over the first second, then movement.
+
+Thin, timid shots are that mode's default failure: a photo with four small doodles around it reads as unfinished, and every agent will produce one unless the bible says otherwise and the review enforces it.
+
 If the user wants a different look than the house style, run a reference analysis first — `templates/reference-analysis.md` shows the method (step through one reference video, written notes only, end with numbered style rules) — then update art-bible sections 1–9 to match before continuing.
 
 Done when: every element the storyboard will draw has a drawing rule and a palette name, `src/lib.js` holds the same values as section 2.2, the mistakes list exists, and `node tools/snap.cjs --fixtures --shot palette --samples 5 --sheet` has been looked at: every swatch named, each colour judged against its neighbours on both plates. Every scene agent copies this palette, so a wrong hue costs every scene file.
+
+### 3b. The cast — photo-doodle only
+
+A story mode needs recurring characters, and characters drift when each scene draws its own. Rewrite `src/cast.js` (copied from `templates/cast.js`) into this film's two or three characters, built on `FILM.props`: one function each, a small named set of poses, returned anchors so scenes hang props off them, and `night: true` support. Then every scene calls `FILM.cast.<name>` and none of them redraws a character.
+
+Draw one test frame with the whole cast and every prop on it before any scene is written — it costs one snap and catches proportions, contrast and missing poses while it is still cheap.
+
+Done when: a single frame shows every character in every pose it needs, and the art bible names their size ranges.
 
 ### 4. Storyboard
 
 Read `reference/shot-types.md` for the shot types the example film proves, then fill `docs/storyboard.md` from the template: logline; numbers (pick a bpm, then beat = 60/bpm seconds and the duration lands in whole bars); summary table; acts mapped to bars; a shared-geometry table for every shape that survives a **match cut**; then one entry per shot — 1 to 3 seconds each, boundaries on the beat grid, plates alternating — with all eight subsections, the Sound cues timestamped on the grid.
 
-Done when: the shots tile [0, duration] exactly, with no gaps or overlaps, every shot has all eight subsections, every match-cut shape has a shared-geometry table, and the doc survives a self-review with a critic's eye: every number in the prose matches the tables (beat arithmetic, act boundaries), and no must-read content sits outside the safe area (x 60–940, y 220–1540) — arithmetic included. Storyboard errors compound into every scene; this is the cheapest moment to catch them.
+**photo-doodle:** the summary table also names, per shot, the photo id, the paper tint and **what the object becomes** — that last column is the film. "The teapot, with steam" is not an idea; "the teapot is the rest stop, and its steam becomes a face that looks at him" is. Add a per-shot position for the hero too, so the character advances across the film instead of standing in the same place in every frame.
+
+Done when: the shots tile [0, duration] exactly, with no gaps or overlaps, every shot has all eight subsections, every match-cut shape has a shared-geometry table, and the doc survives a self-review with a critic's eye: every number in the prose matches the tables (beat arithmetic, act boundaries), and no must-read content sits outside the safe area (x 60–940, y 220–1540 vertical; x 60–1020, y 70–1000 square) — arithmetic included. Storyboard errors compound into every scene; this is the cheapest moment to catch them.
 
 ### 5. Timeline
 
-Write `src/timeline.js` from the storyboard (shape in the storyboard template): title, bpm, duration, the shots array (id, file, start, end, mode, title, transitionIn, brief), and the flat cues list collected from the Sound sections. The stub pass is this step's test — it fails loudly on a malformed timeline.
+Write `src/timeline.js` from the storyboard (shape in the storyboard template): title, bpm, duration, **width and height**, the shots array (id, file, start, end, mode, title, transitionIn, brief), and the flat cues list collected from the Sound sections. A vertical film may leave width and height out and get 1080×1920; **a photo-doodle film must declare `width: 1080, height: 1080`**, because nothing else in the pipeline knows the frame is square. The stub pass is this step's test — it fails loudly on a malformed timeline.
 
 ### 6. Stub pass
 
@@ -73,6 +128,8 @@ One agent per scene file — file ownership is law (docs/CONTRACT.md). Each scen
 
 Each scene brief names the files the agent owns, the shared-geometry tables that bind it, and the scene file that owns the canonical progress glyph.
 
+**photo-doodle:** the brief also names the photo id, the paper tint, what the object becomes, and the four rules agents break on their own — density (8 to 15 elements), scale (nothing important under 40 px), contrast (chalk over dark photo areas, checked on a rendered frame), and pigment never on a photo. Expect to send most shots back once: a first pass is reliably too sparse and too small, and the correction that works is specific — "the hero at s 0.85, the caption at size 46 in clear paper, add the crowd of four" — not "make it denser".
+
 Done when: every shot's contact sheet has been eyeballed and judged on-brief, and the gate is green.
 
 ### 8. Music
@@ -81,9 +138,13 @@ Compose `src/music.js` per `reference/music.md`: keep the engine, replace the CH
 
 Done when: `node tools/audio/render-audio.cjs` then `node tools/audio/analyze.cjs .tmp/audio/score.wav --cues` matches onsets to cues within 10 ms, `node tools/audio/peaks.cjs .tmp/audio/score.wav` shows headroom under the limiter ceiling, and the gate is green.
 
+The limiter protects the peaks, not the loudness: a score that passes both checks can still land near −20 LUFS, which is half the loudness of everything else in a feed. Measure the master with `ffmpeg -i <master> -af ebur128 -f null /dev/null` and normalise the delivered transcodes to about −14 LUFS with `loudnorm=I=-14:TP=-1.5:LRA=11`.
+
 ### 9. Critic waves
 
 Start with the whole film on one sheet: `node tools/snap.cjs --samples 24 --sheet --scale 0.25`. A shot that fails to read at that size is a P1 — the fix is composition, not more detail.
+
+**photo-doodle:** two more questions per shot, answered on the frame. *With the words removed, does the frame still say what is happening?* — if only the caption carries it, the doodles are decoration and the shot needs staging, not polish. *Can you find the hero in under a second?* — a character camouflaged against the photograph needs a chalk halo pass or clear paper to stand on.
 
 Then review every shot on rendered frames: fresh contact sheets, critic subagents scoring composition, faithfulness to the storyboard, motion and density. Critics **measure** ratio-critical geometry in pixels against the art bible (band fractions, thirds, safe-area arithmetic, shared-geometry positions) rather than judging by eye alone, and snap both sides of every match cut to compare.
 
@@ -96,7 +157,7 @@ Done when: every P1 and P2 fix is verified on fresh frames and the gate is green
 `node tools/render.cjs` writes the master (crf 16; a 30 s film renders in minutes). Then the transcodes:
 
 ```bash
-ffmpeg -i exports/<slug>.mp4 -vf scale=720:1280 -c:v libx264 -crf 23 -preset medium -c:a aac -b:a 128k exports/<slug>-phone.mp4
+ffmpeg -i exports/<slug>.mp4 -vf scale=720:1280 -c:v libx264 -crf 23 -preset medium -c:a aac -b:a 128k exports/<slug>-phone.mp4   # photo-doodle: scale=720:720
 ffmpeg -i exports/<slug>.mp4 -c:v libx264 -crf 23 -preset medium -c:a copy exports/<slug>-preview.mp4
 ```
 
