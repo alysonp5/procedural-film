@@ -29,6 +29,9 @@ Play the game at https://claude-quest-nu.vercel.app with a keyboard, a gamepad o
 | `examples/claude-quest-v2/` | The film rebuilt as one continuous run of a real game engine, played from a recorded controller tape, on a simulated CRT with an emulated NES sound chip. The 720p cut is in `exports/`. |
 | `examples/claude-quest-game/` | The playable game with four levels and a boss fight. Its bots replay a controller tape through every level to prove each one can be finished, and its gates run before every deploy. |
 
+These three are worked examples to study and reuse.
+The skill builds vertical films and does not build these, so a new pixel-art film or game means adapting their source, by hand or with your agent.
+
 Claude Quest is an unofficial fan project, not affiliated with or endorsed by Anthropic.
 The art, music and levels are original; the look borrows the grammar of 1985 platformers.
 
