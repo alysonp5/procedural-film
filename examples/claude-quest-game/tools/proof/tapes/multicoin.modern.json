@@ -1,0 +1,17 @@
+{
+ "opts": {
+  "start": "1-2",
+  "feel": "modern"
+ },
+ "rle": "08:1,00:3v,82:1k,83:1,82:i,83:2,82:28,83:1,82:i,83:a,82:1o,83:o,82:i,83:5,82:i,00:w,83:3,82:17,83:1,82:e,83:1,82:i,83:6,82:r,83:2,82:f,83:g,82:12,83:s,82:c,83:s,82:1c,41:s,40:s,41:s,00:u,01:1,00:e,01:1,00:e,01:1,00:e,01:1,00:e,01:1,00:e,01:1,00:e,01:1,00:e,01:1,00:e,01:1,00:e,01:1,00:5",
+ "frames": 1038,
+ "fp": "49963be4",
+ "meta": {
+  "program": "multicoin",
+  "what": "1-2: the multi-coin brick C at (71, 7), bumped from the lower corridor until it is spent (10 coins)",
+  "score": 5300,
+  "tokens": 1,
+  "lives": 3,
+  "planned": "tools/proof/levels.cjs --replan"
+ }
+}

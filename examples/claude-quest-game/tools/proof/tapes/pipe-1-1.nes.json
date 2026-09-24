@@ -1,0 +1,17 @@
+{
+ "opts": {
+  "start": "1-1",
+  "feel": "nes"
+ },
+ "rle": "08:1,00:32,82:1g,83:1,82:i,83:3,82:1o,83:1,82:i,83:e,82:23,83:1,82:i,83:a,82:2n,83:1,82:i,83:a,82:5n,83:1,82:i,83:4,82:1i,83:1,82:i,83:2,82:1h,83:1,82:i,83:8,82:2c,83:1,82:i,83:4,82:11,01:8,00:d,20:1,00:1n,83:s,82:l,01:s,00:f,41:8,40:n,81:8,80:s,00:w",
+ "frames": 1303,
+ "fp": "49661d26",
+ "meta": {
+  "program": "pipe-1-1",
+  "what": "1-1: down the pipe at 134 into the coin room 1-1b and back out by its side pipe, rising from pipe 148 of the same 1-1",
+  "score": 4100,
+  "tokens": 1,
+  "lives": 3,
+  "planned": "tools/proof/levels.cjs --replan"
+ }
+}

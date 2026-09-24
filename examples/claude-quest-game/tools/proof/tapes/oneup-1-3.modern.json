@@ -1,0 +1,17 @@
+{
+ "opts": {
+  "start": "1-3",
+  "feel": "modern"
+ },
+ "rle": "08:1,00:32,82:10,83:1,82:l,83:g,82:g,83:1,82:i,83:c,82:j,83:4,82:3j,83:1,82:i,40:c,41:s,40:n,81:3,80:j,83:s,82:d,00:g,81:s,80:n,83:1,82:i,83:6,82:1q,83:6,82:p,83:4,82:k,81:s,80:9,83:k,82:y,83:s,82:o,01:s,00:o,01:3,00:9,41:e,40:c,80:a,42:o,43:s,42:e",
+ "frames": 1045,
+ "fp": "9f4b9d07",
+ "meta": {
+  "program": "oneup-1-3",
+  "what": "1-3: the 1UP block N at (108, 6) over T10, and its 1UP (it stays on the block in the sky)",
+  "score": 2000,
+  "tokens": 0,
+  "lives": 4,
+  "planned": "tools/proof/levels.cjs --replan"
+ }
+}

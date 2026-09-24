@@ -1,0 +1,17 @@
+{
+ "opts": {
+  "start": "1-4",
+  "feel": "nes"
+ },
+ "rle": "08:1,00:32,82:2e,83:1,82:i,00:b,83:5,82:2a,83:1,82:i,83:6,82:25,40:9,00:2,40:r,00:1,80:1,40:a,00:9,82:1m,83:8,82:t,83:1,82:i,40:k,80:a,00:9,81:4,80:j,00:14,01:o,00:m,81:o,80:e,00:14,81:g,80:i,81:a,80:o,83:a,82:1s,41:s,40:o,01:8,00:f,40:a,82:e,83:p",
+ "frames": 1081,
+ "fp": "dcc30bba",
+ "meta": {
+  "program": "oneup-1-4",
+  "what": "1-4: the hidden 1UP block + at (91, 6) in the safe room, and its 1UP caught",
+  "score": 1000,
+  "tokens": 1,
+  "lives": 4,
+  "planned": "tools/proof/levels.cjs --replan"
+ }
+}

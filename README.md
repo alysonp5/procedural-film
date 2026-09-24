@@ -18,6 +18,20 @@ The reference film is `examples/butterfly-life`, the life cycle of a monarch but
 | `skills/procedural-film/` | The skill. `SKILL.md` is the pipeline, `foundation/` is the engine and tools copied into each new film, `templates/` holds the four planning documents, `reference/` holds the shot-type index, scene and music guides, and frames from the example as the visual target. |
 | `examples/butterfly-life/` | The butterfly film as the skill produces it: planning docs, source, tools, the HTML player and the phone MP4. |
 
+## Claude Quest: a game on the same engine
+
+Three more examples push the engine from vertical films into a 320x180 NES-style platformer starring Claw'd.
+Play the game at https://claude-quest-nu.vercel.app with a keyboard, a gamepad or the on-screen pad.
+
+| Path | Contents |
+|---|---|
+| `examples/claude-quest/` | The first pixel-art film: 17 hand-animated shots, 40 seconds, 60 fps. |
+| `examples/claude-quest-v2/` | The film rebuilt as one continuous run of a real game engine, played from a recorded controller tape, on a simulated CRT with an emulated NES sound chip. The 720p cut is in `exports/`. |
+| `examples/claude-quest-game/` | The playable game with four levels and a boss fight. Its bots replay a controller tape through every level to prove each one can be finished, and its gates run before every deploy. |
+
+Claude Quest is an unofficial fan project, not affiliated with or endorsed by Anthropic.
+The art, music and levels are original; the look borrows the grammar of 1985 platformers.
+
 ## Requirements
 
 - Node.js 20 or newer

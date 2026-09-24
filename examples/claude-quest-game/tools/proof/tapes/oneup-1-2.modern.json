@@ -1,0 +1,17 @@
+{
+ "opts": {
+  "start": "1-2",
+  "feel": "modern"
+ },
+ "rle": "08:1,00:3v,82:1k,83:1,82:i,83:2,82:28,83:1,82:i,83:a,82:1o,83:o,82:i,83:5,82:i,00:w,83:3,82:17,83:1,82:e,83:1,82:i,83:6,82:r,83:2,82:f,83:g,82:12,01:k,00:d,83:8,82:c,01:8,00:c,81:8,80:c,01:2,80:a,42:e,43:s",
+ "frames": 814,
+ "fp": "d1900d87",
+ "meta": {
+  "program": "oneup-1-2",
+  "what": "1-2: the hidden 1UP block + at (67, 5), bumped from the deck, and its 1UP caught",
+  "score": 2900,
+  "tokens": 0,
+  "lives": 4,
+  "planned": "tools/proof/levels.cjs --replan"
+ }
+}

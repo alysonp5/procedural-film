@@ -1,0 +1,17 @@
+{
+ "opts": {
+  "start": "1-4",
+  "feel": "nes"
+ },
+ "rle": "08:1,00:32,82:2e,83:1,82:i,00:b,83:5,82:2a,83:1,82:i,83:6,82:25,40:9,00:2,40:r,00:1,80:1,40:a,00:9,82:1m,83:8,82:t,83:1,82:i,40:k,80:a,00:9,81:4,80:j,00:14,01:o,00:m,81:o,80:e,00:14,81:g,80:i,81:a,80:o,83:a,82:2o,83:1,82:i,40:d,83:3,82:m,83:1,82:i,00:b,83:1,82:l,00:r,83:3,82:16,83:1,82:i,83:m,82:k,83:4,82:k,83:6,82:t,83:6,82:1w,83:1,82:i,40:d,83:a,82:1g,00:bl",
+ "frames": 1875,
+ "fp": "c48a1d58",
+ "meta": {
+  "program": "1-4",
+  "what": "World 1-4 from its start to the ENTER key, then the rescue until the ending text starts (complete)",
+  "score": 1000,
+  "tokens": 1,
+  "lives": 3,
+  "planned": "tools/proof/levels.cjs --replan"
+ }
+}
